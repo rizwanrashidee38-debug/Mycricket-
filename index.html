@@ -1,1 +1,330 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cricket Career Simulator</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #27ae60;
+            --danger: #c0392b;
+            --bg: #ecf0f1;
+            --text: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: var(--primary);
+            text-align: center;
+        }
+
+        .dashboard {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            flex: 1;
+            text-align: center;
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 1.2rem;
+            color: var(--primary);
+            border-bottom: 2px solid var(--bg);
+            padding-bottom: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-weight: bold;
+        }
+
+        .stat-value {
+            color: var(--secondary);
+            font-size: 1.2rem;
+        }
+
+        .game-area {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .tiles-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .tile {
+            background-color: var(--primary);
+            color: white;
+            height: 100px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.3s;
+            user-select: none;
+        }
+
+        .tile:hover {
+            transform: scale(1.05);
+            background-color: #34495e;
+        }
+
+        .tile.revealed {
+            cursor: default;
+            transform: none;
+        }
+
+        .tile.runs { background-color: var(--secondary); }
+        .tile.dot { background-color: #7f8c8d; }
+        .tile.out { background-color: var(--danger); }
+        .tile.disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        .message {
+            font-size: 1.5rem;
+            font-weight: bold;
+            height: 40px;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: #1a252f;
+        }
+
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🏏 Cricket Career Simulator</h1>
+
+    <div class="dashboard">
+        <!-- Current Match Stats -->
+        <div class="card">
+            <h2>Current Innings</h2>
+            <div class="stats-grid">
+                <div>Runs: <br><span class="stat-value" id="current-runs">0</span></div>
+                <div>Balls: <br><span class="stat-value" id="current-balls">0</span></div>
+            </div>
+        </div>
+
+        <!-- Career Stats -->
+        <div class="card">
+            <h2>Career Stats</h2>
+            <div class="stats-grid">
+                <div>Matches: <br><span class="stat-value" id="career-matches">0</span></div>
+                <div>Runs: <br><span class="stat-value" id="career-runs">0</span></div>
+                <div>Average: <br><span class="stat-value" id="career-avg">0.00</span></div>
+                <div>Strike Rate: <br><span class="stat-value" id="career-sr">0.00</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-area">
+        <div class="message" id="message">Click a tile to face the next ball!</div>
+        
+        <div class="tiles-container" id="tiles-container">
+            <!-- Tiles generated via JS -->
+        </div>
+
+        <button id="next-inning-btn" style="display: none;" onclick="startInnings()">Play Next Innings</button>
+    </div>
+
+    <script>
+        // Game State
+        let career = {
+            matches: 0,
+            runs: 0,
+            balls: 0,
+            outs: 0
+        };
+
+        let currentInnings = {
+            runs: 0,
+            balls: 0,
+            isOut: false
+        };
+
+        // Weighted outcomes to make the game playable (LBW is ~10% chance)
+        const possibleOutcomes = [
+            '1', '1', '1', '1', 
+            '2', '2', '2', 
+            '3', 
+            'Four', 'Four', 'Four', 
+            'Six', 'Six', 
+            'Dot', 'Dot', 'Dot', 'Dot', 
+            'LBW', 'LBW'
+        ];
+
+        const tilesContainer = document.getElementById('tiles-container');
+        const messageEl = document.getElementById('message');
+        const nextInningBtn = document.getElementById('next-inning-btn');
+
+        // Initialize the first innings
+        startInnings();
+
+        function startInnings() {
+            currentInnings.runs = 0;
+            currentInnings.balls = 0;
+            currentInnings.isOut = false;
+            
+            career.matches++;
+            
+            nextInningBtn.style.display = 'none';
+            updateUI();
+            generateTiles();
+            messageEl.innerText = "Match started! Pick a tile.";
+            messageEl.style.color = "var(--primary)";
+        }
+
+        function generateTiles() {
+            tilesContainer.innerHTML = '';
+            
+            // Generate 4 random outcomes for the tiles
+            let tileOutcomes = [];
+            for (let i = 0; i < 4; i++) {
+                const randomIdx = Math.floor(Math.random() * possibleOutcomes.length);
+                tileOutcomes.push(possibleOutcomes[randomIdx]);
+            }
+
+            // Create DOM elements for tiles
+            tileOutcomes.forEach((outcome, index) => {
+                const tile = document.createElement('div');
+                tile.className = 'tile';
+                tile.innerText = '?';
+                tile.onclick = () => handleTileClick(tile, outcome);
+                tilesContainer.appendChild(tile);
+            });
+        }
+
+        function handleTileClick(clickedTile, outcome) {
+            if (currentInnings.isOut || clickedTile.classList.contains('revealed')) return;
+
+            // Process the ball
+            currentInnings.balls++;
+            career.balls++;
+
+            // Reveal the clicked tile
+            clickedTile.innerText = outcome;
+            clickedTile.classList.add('revealed');
+
+            // Disable all other tiles
+            const allTiles = document.querySelectorAll('.tile');
+            allTiles.forEach(t => {
+                if (t !== clickedTile) t.classList.add('disabled');
+                t.onclick = null; // Remove click listeners
+            });
+
+            // Handle Game Logic based on outcome
+            if (outcome === 'LBW') {
+                clickedTile.classList.add('out');
+                messageEl.innerText = "🚨 OUT! Plumb LBW! 🚨";
+                messageEl.style.color = "var(--danger)";
+                currentInnings.isOut = true;
+                career.outs++;
+                nextInningBtn.style.display = 'inline-block';
+            } else {
+                let runsScored = 0;
+                if (outcome === '1') runsScored = 1;
+                else if (outcome === '2') runsScored = 2;
+                else if (outcome === '3') runsScored = 3;
+                else if (outcome === 'Four') runsScored = 4;
+                else if (outcome === 'Six') runsScored = 6;
+                else if (outcome === 'Dot') runsScored = 0;
+
+                currentInnings.runs += runsScored;
+                career.runs += runsScored;
+
+                if (outcome === 'Dot') {
+                    clickedTile.classList.add('dot');
+                    messageEl.innerText = "Solid defense. Dot ball.";
+                    messageEl.style.color = "#7f8c8d";
+                } else {
+                    clickedTile.classList.add('runs');
+                    messageEl.innerText = `Great shot! You scored ${outcome === 'Four' || outcome === 'Six' ? outcome : runsScored + ' run(s)'}.`;
+                    messageEl.style.color = "var(--secondary)";
+                }
+
+                // Setup next ball automatically after a short delay
+                setTimeout(() => {
+                    if (!currentInnings.isOut) {
+                        generateTiles();
+                        messageEl.innerText = "Bowler is running in... Pick a tile!";
+                        messageEl.style.color = "var(--primary)";
+                    }
+                }, 1200);
+            }
+
+            updateUI();
+        }
+
+        function updateUI() {
+            // Current
+            document.getElementById('current-runs').innerText = currentInnings.runs;
+            document.getElementById('current-balls').innerText = currentInnings.balls;
+
+            // Career
+            document.getElementById('career-matches').innerText = career.matches;
+            document.getElementById('career-runs').innerText = career.runs;
+            
+            // Calculate Average (Runs / Outs). If 0 outs, Average is technically infinite, so we show runs.
+            let avg = career.outs > 0 ? (career.runs / career.outs).toFixed(2) : career.runs.toFixed(2);
+            document.getElementById('career-avg').innerText = avg;
+
+            // Calculate Strike Rate (Runs / Balls * 100)
+            let sr = career.balls > 0 ? ((career.runs / career.balls) * 100).toFixed(2) : "0.00";
+            document.getElementById('career-sr').innerText = sr;
+        }
+    </script>
+</body>
+</html>
