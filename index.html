@@ -1,4 +1,6 @@
-     <!DOCTYPE html>
+                                             
+                                        
+        <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -320,7 +322,7 @@
 
             updateUI();
             
-            // Determine starting phase based on role and coin toss (randomize who bats first)
+            // Determine starting phase based on role and coin toss
             let teamBatsFirst = Math.random() > 0.5;
             
             if (teamBatsFirst) {
@@ -334,13 +336,15 @@
 
         function getOpponent() {
             let opponents = ALL_TEAMS.filter(t => t !== player.team);
-            // Simple rotation based on matchNum
             return opponents[(season.matchNum - 1) % opponents.length];
         }
 
         function startNextPhase() {
+            // BUG FIX: Unlock game processor and force UI update for new innings score 0/0
+            match.isProcessing = false;
             document.getElementById('btn-next-phase').style.display = 'none';
             tilesContainer.innerHTML = '';
+            updateUI(); 
             
             if (match.phase === 'BAT') {
                 document.getElementById('ui-innings').innerText = match.innings === 1 ? "1st (Batting)" : "2nd (Chasing)";
@@ -380,7 +384,6 @@
         }
 
         function getBattingPool() {
-            // Higher division = harder to score, more dots, slightly more wickets
             if (player.division === 3) return ['Dot','Dot','1','1','2','3','Four','Four','Six','WICKET'];
             if (player.division === 2) return ['Dot','Dot','Dot','1','1','2','Four','Six','WICKET','WICKET'];
             return ['Dot','Dot','Dot','Dot','1','1','2','Four','WICKET','WICKET','WICKET'];
@@ -390,7 +393,6 @@
             if (match.isProcessing || match.playerOut || match.teamBalls >= MAX_BALLS || match.teamWkts >= 10) return;
             match.isProcessing = true;
             
-            // UI Reveal
             revealTile(tile, outcome, 'BAT');
             
             match.playerBallsFaced++;
@@ -411,7 +413,6 @@
                 else if (runs >= 4) msgEl.innerText = `CRACKING SHOT! That's a ${outcome}!`;
                 else msgEl.innerText = `Good running. Scored ${runs}.`;
                 
-                // Strike rotation
                 if (runs === 1 || runs === 3) match.playerOnStrike = false;
             }
             
@@ -430,18 +431,16 @@
                 let r = res==='Dot'?0:parseInt(res);
                 match.teamRuns += r;
                 msgEl.innerText = `Partner scored ${r}.`;
-                if (r === 1 || r === 3) match.playerOnStrike = true; // Rotates back to player
+                if (r === 1 || r === 3) match.playerOnStrike = true; 
             }
             checkOverAndInnings('BAT');
         }
 
         // --- BOWLING LOGIC ---
         function getBowlingPool() {
-            // Bowling: clicking tile reveals what opponent scored off your ball
-            // Higher division = opponent hits more, fewer wickets
-            if (player.division === 3) return ['Dot','Dot','1','1','2','4','WICKET']; // Easy
+            if (player.division === 3) return ['Dot','Dot','1','1','2','4','WICKET']; 
             if (player.division === 2) return ['Dot','1','1','2','4','6','WICKET'];
-            return ['Dot','1','2','4','4','6','WICKET']; // Hard
+            return ['Dot','1','2','4','4','6','WICKET']; 
         }
 
         function handleBowlClick(tile, outcome) {
@@ -472,6 +471,35 @@
             checkOverAndInnings('BOWL');
         }
 
+        // BUG FIX: Simulates opponent's over so PLAYER doesn't bowl consecutive overs 
+        function simulatePartnerOver() {
+            tilesContainer.innerHTML = '';
+            let runs = 0, wkts = 0, balls = 0;
+            
+            while (balls < 6 && match.oppWkts + wkts < 10 && match.oppRuns + runs <= (match.innings === 2 ? match.target : 9999)) {
+                balls++;
+                if (Math.random() < 0.05) wkts++;
+                else runs += Math.random() < 0.2 ? (Math.random() < 0.5 ? 4 : 6) : Math.floor(Math.random() * 3);
+            }
+            
+            match.oppBalls += balls;
+            match.oppWkts += wkts;
+            match.oppRuns += runs;
+            
+            updateUI();
+            msgEl.innerText = `Partner bowled an over: ${runs} runs, ${wkts} wickets.`;
+            
+            setTimeout(() => {
+                if (match.oppBalls >= MAX_BALLS || match.oppWkts >= 10 || (match.innings === 2 && match.oppRuns > match.target)) {
+                    endCurrentPhase('BOWL');
+                } else {
+                    match.isProcessing = false;
+                    msgEl.innerText = "You are back into the attack. Bowl!";
+                    generateTiles('BOWL');
+                }
+            }, 2500);
+        }
+
         // --- SHARED LOGIC ---
         function revealTile(tile, outcome, type) {
             tile.innerText = outcome === 'WICKET' ? 'OUT' : outcome;
@@ -488,20 +516,20 @@
             let currentWkts = currentRole === 'BAT' ? match.teamWkts : match.oppWkts;
             let currentRuns = currentRole === 'BAT' ? match.teamRuns : match.oppRuns;
             
-            // Over logic
+            // Over logic for batting strike rotation
             if (currentBalls % 6 === 0 && currentBalls > 0) {
-                if (currentRole === 'BAT') match.playerOnStrike = !match.playerOnStrike; // End of over strike rotation
+                if (currentRole === 'BAT') match.playerOnStrike = !match.playerOnStrike; 
             }
 
             // Check innings end
             let inningsOver = false;
             if (currentBalls >= MAX_BALLS || currentWkts >= 10) inningsOver = true;
-            if (match.innings === 2 && currentRuns > match.target) inningsOver = true; // Chasing team won
+            if (match.innings === 2 && currentRuns > match.target) inningsOver = true; 
             
             // Check player phase end
             if (currentRole === 'BAT' && match.playerOut && !inningsOver) {
                 msgEl.innerText += " You return to the pavilion. Rest of innings simulated.";
-                inningsOver = true; // Stop manual play
+                inningsOver = true; 
             }
             if (currentRole === 'BOWL' && match.playerBallsBowled >= 24 && !inningsOver) {
                 msgEl.innerText += " Spell completed. Rest of innings simulated.";
@@ -523,10 +551,15 @@
                             msgEl.innerText = "Bowler is ready. Pick a tile!";
                             generateTiles('BAT');
                         }
-                    } else {
-                        match.isProcessing = false;
-                        msgEl.innerText = "Run up and bowl...";
-                        generateTiles('BOWL');
+                    } else if (currentRole === 'BOWL') {
+                        // Call partner simulation if player just finished their over
+                        if (match.playerBallsBowled % 6 === 0 && match.playerBallsBowled > 0) {
+                            simulatePartnerOver();
+                        } else {
+                            match.isProcessing = false;
+                            msgEl.innerText = "Run up and bowl...";
+                            generateTiles('BOWL');
+                        }
                     }
                 }
             }, 1200);
@@ -541,8 +574,8 @@
             while (b < MAX_BALLS && w < 10) {
                 if (match.innings === 2 && r > match.target) break;
                 b++;
-                let simRun = Math.random() < 0.05 ? 'W' : Math.floor(Math.random() * 3); // 0, 1, 2
-                if (Math.random() < 0.15) simRun = 4; // Boundaries
+                let simRun = Math.random() < 0.05 ? 'W' : Math.floor(Math.random() * 3);
+                if (Math.random() < 0.15) simRun = 4; 
                 
                 if (simRun === 'W') w++;
                 else r += simRun;
@@ -559,7 +592,6 @@
                 match.target = (currentRole === 'BAT' || match.phase === 'SIM_BAT') ? match.teamRuns : match.oppRuns;
                 document.getElementById('ui-target-req').innerText = `Target: ${match.target + 1}`;
                 
-                // Switch phases
                 if (match.phase === 'BAT' || match.phase === 'SIM_BAT') {
                     match.phase = (player.role === 'BOWL' || player.role === 'AR') ? 'BOWL' : 'SIM_BOWL';
                 } else {
@@ -575,7 +607,6 @@
         }
 
         function simulateTeamPhase() {
-            // Simulates an entire innings where the player is NOT involved
             let runs = 0, wkts = 0, balls = 0;
             while(balls < MAX_BALLS && wkts < 10) {
                 if (match.innings === 2 && runs > match.target) break;
@@ -592,7 +623,6 @@
         }
 
         function resolveMatch() {
-            // Determine Winner
             let won = false;
             let resultTxt = "";
             
@@ -603,14 +633,11 @@
             msgEl.innerText = resultTxt;
             document.getElementById('btn-show-table').style.display = 'block';
 
-            // Update League Table
             updateLeagueTable(player.team, won ? 2 : 0, match.teamRuns, match.teamBalls, match.oppRuns, match.oppBalls);
             updateLeagueTable(match.opponent, won ? 0 : 2, match.oppRuns, match.oppBalls, match.teamRuns, match.teamBalls);
             
-            // Auto simulate other matches for this round
             ALL_TEAMS.forEach(t => {
                 if(t !== player.team && t !== match.opponent) {
-                    // Random sim
                     let tr = 140 + Math.floor(Math.random()*60);
                     let or = 140 + Math.floor(Math.random()*60);
                     updateLeagueTable(t, tr>or?2:0, tr, 120, or, 120);
@@ -623,7 +650,6 @@
             t.p++;
             if(pts === 2) t.w++; else t.l++;
             t.pts += pts;
-            // Simplified NRR
             let oversFor = ballsFor / 6; let oversAg = ballsAgainst / 6;
             let nrrThisMatch = (runsFor / (oversFor||20)) - (runsAgainst / (oversAg||20));
             t.nrr = ((t.nrr * (t.p - 1)) + nrrThisMatch) / t.p;
@@ -633,7 +659,7 @@
 
         function updateUI() {
             let isTeamBatting = (match.phase === 'BAT' || match.phase === 'SIM_BAT');
-            if(match.phase === 'END') isTeamBatting = match.innings === 2 ? (match.phase==='SIM_BAT') : true; // Arbitrary for display
+            if(match.phase === 'END') isTeamBatting = match.innings === 2 ? (match.phase==='SIM_BAT') : true; 
             
             let r = isTeamBatting ? match.teamRuns : match.oppRuns;
             let w = isTeamBatting ? match.teamWkts : match.oppWkts;
@@ -650,7 +676,6 @@
         }
 
         function showTableModal() {
-            // Sort table
             season.league.sort((a,b) => b.pts - a.pts || b.nrr - a.nrr);
             
             let tbody = `<tr><th>Team</th><th>P</th><th>W</th><th>Pts</th><th>NRR</th></tr>`;
@@ -710,4 +735,3 @@
     </script>
 </body>
 </html>
-                                   
