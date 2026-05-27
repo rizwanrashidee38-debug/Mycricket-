@@ -1,18 +1,19 @@
 
-                       <!DOCTYPE html>
+                                                                                     <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cricket Career Simulator: Pro League</title>
+    <title>Cricket Career Simulator: Realistic Pro</title>
     <style>
         :root {
-            --primary: #1e3799;
-            --secondary: #44bd32;
-            --danger: #c23616;
-            --warning: #fbc531;
-            --bg: #f5f6fa;
-            --text: #2f3640;
+            --pitch-green: #27ae60;
+            --dark-green: #1e8449;
+            --ball-red: #c0392b;
+            --boundary-blue: #2980b9;
+            --warning: #f39c12;
+            --bg: #ecf0f1;
+            --text: #2c3e50;
             --card-bg: #ffffff;
         }
 
@@ -28,7 +29,7 @@
         }
 
         h1, h2, h3 {
-            color: var(--primary);
+            color: var(--dark-green);
             text-align: center;
             margin-top: 0;
         }
@@ -37,19 +38,19 @@
         #setup-screen, #game-screen, #season-end-screen {
             width: 100%;
             max-width: 800px;
-            display: none; /* Handled by JS */
+            display: none; 
             flex-direction: column;
             align-items: center;
         }
 
-        #setup-screen { display: flex; } /* Default visible */
+        #setup-screen { display: flex; }
 
         /* Setup Form */
         .setup-card, .season-end-card {
             background: var(--card-bg);
             padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
             width: 100%;
             max-width: 400px;
         }
@@ -68,22 +69,28 @@
         .form-group input, .form-group select {
             width: 100%;
             padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
             font-size: 1rem;
             box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: var(--pitch-green);
+            outline: none;
         }
 
         .form-group input[disabled] {
-            background-color: #e84118;
-            color: white;
+            background-color: #bdc3c7;
+            color: #2c3e50;
             font-weight: bold;
             border: none;
         }
 
         /* Dashboard */
         .header-bar {
-            background: var(--primary);
+            background: var(--dark-green);
             color: white;
             width: 100%;
             padding: 15px 20px;
@@ -93,10 +100,10 @@
             align-items: center;
             margin-bottom: 20px;
             box-sizing: border-box;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
         }
 
-        .header-bar span { font-weight: bold; color: var(--warning); }
+        .header-bar span { font-weight: bold; color: #f1c40f; }
 
         .dashboard {
             display: flex;
@@ -109,16 +116,18 @@
             background: var(--card-bg);
             padding: 15px;
             border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             flex: 1;
             text-align: center;
+            border-top: 4px solid var(--pitch-green);
         }
 
         .card h3 {
             font-size: 1.1rem;
-            border-bottom: 2px solid var(--bg);
+            border-bottom: 1px solid var(--bg);
             padding-bottom: 8px;
             margin-bottom: 10px;
+            color: #7f8c8d;
         }
 
         .stats-grid {
@@ -130,8 +139,8 @@
         }
 
         .stat-value {
-            color: var(--secondary);
-            font-size: 1.3rem;
+            color: var(--dark-green);
+            font-size: 1.4rem;
             display: block;
             margin-top: 5px;
         }
@@ -141,18 +150,18 @@
             background: var(--card-bg);
             padding: 30px;
             border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
             width: 100%;
             text-align: center;
             box-sizing: border-box;
         }
 
         .message {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             font-weight: bold;
             height: 35px;
             margin-bottom: 15px;
-            color: var(--primary);
+            color: var(--dark-green);
         }
 
         .tiles-container {
@@ -160,87 +169,97 @@
             grid-template-columns: 1fr 1fr;
             gap: 15px;
             margin: 20px auto;
-            max-width: 400px;
+            max-width: 450px;
         }
 
         .tile {
-            background-color: var(--primary);
+            background-color: var(--pitch-green);
             color: white;
-            height: 100px;
+            height: 110px;
             border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             font-weight: bold;
             cursor: pointer;
-            transition: transform 0.2s, background-color 0.3s;
+            transition: transform 0.1s, background-color 0.2s;
             user-select: none;
+            box-shadow: 0 4px 0 var(--dark-green);
         }
 
-        .tile:hover { transform: scale(1.05); background-color: #273c75; }
-        .tile.revealed { cursor: default; transform: none; }
-        .tile.runs { background-color: var(--secondary); }
-        .tile.dot { background-color: #718093; }
-        .tile.out { background-color: var(--danger); }
-        .tile.disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .tile:hover { 
+            transform: translateY(-2px); 
+            background-color: #2ecc71; 
+            box-shadow: 0 6px 0 var(--dark-green);
+        }
+        
+        .tile:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 var(--dark-green);
+        }
+
+        .tile.revealed { cursor: default; transform: none; box-shadow: none; }
+        .tile.runs { background-color: var(--boundary-blue); }
+        .tile.dot { background-color: #95a5a6; color: #fff; }
+        .tile.out { background-color: var(--ball-red); }
+        .tile.disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
 
         button {
-            background-color: var(--primary);
+            background-color: var(--dark-green);
             color: white;
             border: none;
-            padding: 12px 25px;
+            padding: 14px 25px;
             font-size: 1.1rem;
-            border-radius: 5px;
+            border-radius: 6px;
             cursor: pointer;
             transition: background 0.3s;
             font-weight: bold;
             width: 100%;
-            margin-top: 10px;
+            margin-top: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
-        button:hover { background-color: #273c75; }
-        button.action-btn { background-color: var(--warning); color: #333; }
-        button.action-btn:hover { background-color: #e1b12c; }
+        button:hover { background-color: #145a32; }
+        button.action-btn { background-color: var(--warning); color: #2c3e50; }
+        button.action-btn:hover { background-color: #d68910; }
 
     </style>
 </head>
 <body>
 
-    <h1>🏏 Pro Cricket Career</h1>
+    <h1>🏏 Real Cricket Career</h1>
 
     <!-- SCREEN 1: PLAYER SETUP -->
     <div id="setup-screen">
         <div class="setup-card">
-            <h2>Create Your Player</h2>
+            <h2>Sign Your Contract</h2>
             <div class="form-group">
-                <label>Player Name:</label>
-                <input type="text" id="p-name" placeholder="Enter your name" value="Rookie">
+                <label>Batsman Name:</label>
+                <input type="text" id="p-name" placeholder="e.g. V. Kohli" value="Rookie">
             </div>
             <div class="form-group">
                 <label>Nationality:</label>
                 <input type="text" id="p-nation" placeholder="e.g. India, Australia" value="India">
             </div>
             <div class="form-group">
-                <label>Select Team:</label>
+                <label>Franchise Team:</label>
                 <select id="p-team">
-                    <option value="Strikers">Strikers</option>
+                    <option value="Super Kings">Super Kings</option>
+                    <option value="Mumbai Indians">Mumbai Indians</option>
+                    <option value="Royal Challengers">Royal Challengers</option>
+                    <option value="Knight Riders">Knight Riders</option>
+                    <option value="Capitals">Capitals</option>
+                    <option value="Sunrisers">Sunrisers</option>
                     <option value="Titans">Titans</option>
-                    <option value="Warriors">Warriors</option>
                     <option value="Royals">Royals</option>
-                    <option value="Knights">Knights</option>
-                    <option value="Spartans">Spartans</option>
-                    <option value="Legends">Legends</option>
-                    <option value="Gladiators">Gladiators</option>
-                    <option value="Invincibles">Invincibles</option>
-                    <option value="Challengers">Challengers</option>
                 </select>
             </div>
             <div class="form-group">
-                <label>Starting Division:</label>
-                <input type="text" value="Division 3 (Amateur)" disabled>
+                <label>League Standing:</label>
+                <input type="text" value="Division 3 (Amateur Level)" disabled>
             </div>
-            <button onclick="startCareer()">Start Career</button>
+            <button onclick="startCareer()">Walk Out to Bat</button>
         </div>
     </div>
 
@@ -255,9 +274,9 @@
         <div class="dashboard">
             <!-- Current Match -->
             <div class="card">
-                <h3>Match <span id="ui-match-num">1</span>/9</h3>
-                <div>Vs: <span id="ui-opponent" style="color:var(--danger); font-weight:bold;">Opponent</span></div>
-                <div class="stats-grid" style="margin-top: 10px;">
+                <h3>Match <span id="ui-match-num">1</span> of 9</h3>
+                <div>Vs: <span id="ui-opponent" style="color:var(--ball-red); font-weight:bold;">Opponent</span></div>
+                <div class="stats-grid" style="margin-top: 15px;">
                     <div>Runs<span class="stat-value" id="current-runs">0</span></div>
                     <div>Balls<span class="stat-value" id="current-balls">0</span></div>
                 </div>
@@ -266,10 +285,10 @@
             <!-- Season Progress -->
             <div class="card">
                 <h3>Season Progress</h3>
-                <div style="font-size: 0.9rem; margin-bottom: 5px;">Target: <strong id="ui-target" style="color:var(--primary);">250 Runs</strong></div>
+                <div style="font-size: 0.9rem; margin-bottom: 5px;">Season Target: <strong id="ui-target" style="color:var(--dark-green);">300 Runs</strong></div>
                 <div class="stats-grid">
-                    <div>Season Runs<span class="stat-value" id="season-runs">0</span></div>
-                    <div>Avg<span class="stat-value" id="season-avg">0.00</span></div>
+                    <div>Total Runs<span class="stat-value" id="season-runs">0</span></div>
+                    <div>Average<span class="stat-value" id="season-avg">0.00</span></div>
                 </div>
             </div>
 
@@ -277,31 +296,31 @@
             <div class="card">
                 <h3>Career Stats</h3>
                 <div class="stats-grid">
-                    <div>Runs<span class="stat-value" id="career-runs" style="color:#333;">0</span></div>
-                    <div>Strike Rate<span class="stat-value" id="career-sr" style="color:#333;">0.00</span></div>
+                    <div>Matches<span class="stat-value" id="career-matches" style="color:#2c3e50;">0</span></div>
+                    <div>Strike Rate<span class="stat-value" id="career-sr" style="color:#2c3e50;">0.00</span></div>
                 </div>
             </div>
         </div>
 
         <div class="game-area">
-            <div class="message" id="message">Bowler is ready. Pick a tile!</div>
+            <div class="message" id="message">Bowler is at the top of his mark. Pick a tile!</div>
             
             <div class="tiles-container" id="tiles-container">
                 <!-- Tiles generated here -->
             </div>
 
             <button id="next-inning-btn" class="action-btn" style="display: none;" onclick="startNextMatch()">Play Next Match</button>
-            <button id="end-season-btn" class="action-btn" style="display: none;" onclick="showSeasonEnd()">End Season & See Results</button>
+            <button id="end-season-btn" class="action-btn" style="display: none;" onclick="showSeasonEnd()">End Season & View Standings</button>
         </div>
     </div>
 
     <!-- SCREEN 3: SEASON END -->
     <div id="season-end-screen">
         <div class="season-end-card">
-            <h2>Season Completed!</h2>
+            <h2>Season Over</h2>
             <p id="season-result-msg" style="font-size: 1.2rem; font-weight: bold; text-align: center;"></p>
             <div class="stats-grid" style="margin: 20px 0;">
-                <div>Total Runs Scored: <span class="stat-value" id="final-season-runs">0</span></div>
+                <div>Runs Scored: <span class="stat-value" id="final-season-runs">0</span></div>
                 <div>Target Required: <span class="stat-value" id="final-season-target">0</span></div>
             </div>
             <button onclick="startNewSeason()">Start Next Season</button>
@@ -310,10 +329,10 @@
 
     <script>
         // Game Data Models
-        const TEAMS = ["Strikers", "Titans", "Warriors", "Royals", "Knights", "Spartans", "Legends", "Gladiators", "Invincibles", "Challengers"];
+        const TEAMS = ["Super Kings", "Mumbai Indians", "Royal Challengers", "Knight Riders", "Capitals", "Sunrisers", "Titans", "Royals"];
+        const DISMISSALS = ["Clean Bowled!", "Caught at Slip!", "Plumb LBW!", "Run Out!", "Caught in the Deep!"];
         
         let player = { name: "", nationality: "", team: "", division: 3 };
-        
         let career = { runs: 0, balls: 0, outs: 0, matchesPlayed: 0 };
         
         let season = { 
@@ -321,21 +340,38 @@
             runs: 0, 
             outs: 0, 
             maxMatches: 9,
-            targetRuns: 250 // Div 3 default
+            targetRuns: 300 
         };
         
         let currentInnings = { runs: 0, balls: 0, isOut: false };
 
-        // Outcome Probabilities (Harder in higher divisions)
-        function getPossibleOutcomes() {
-            let base = ['1', '1', '1', '2', '2', '3', 'Four', 'Four', 'Six', 'Dot', 'Dot', 'Dot'];
-            // Div 3: 2 LBWs (Easiest)
-            // Div 2: 3 LBWs
-            // Div 1: 4 LBWs + 2 extra Dots (Hardest)
-            if(player.division === 3) return [...base, 'LBW', 'LBW'];
-            if(player.division === 2) return [...base, 'LBW', 'LBW', 'LBW'];
-            if(player.division === 1) return [...base, 'Dot', 'Dot', 'LBW', 'LBW', 'LBW', 'LBW'];
-            return base;
+        // Realistic Outcome Generator based on Division
+        // Total pool size is exactly 100 for easy percentage visualization.
+        function getRealisticPool() {
+            let pool = [];
+            let config;
+
+            if (player.division === 3) {
+                // Div 3: Loose bowling, easy to score, low wicket chance (2%)
+                config = { dot: 30, one: 40, two: 10, three: 3, four: 12, six: 3, wicket: 2 };
+            } else if (player.division === 2) {
+                // Div 2: Good line and length, harder to find gaps, slightly higher wicket chance (3%)
+                config = { dot: 38, one: 38, two: 8, three: 2, four: 10, six: 1, wicket: 3 };
+            } else {
+                // Div 1: International standard bowling. Very hard to hit boundaries. (5% wicket chance)
+                config = { dot: 45, one: 35, two: 6, three: 1, four: 7, six: 1, wicket: 5 };
+            }
+
+            // Populate the pool array based on the config
+            for(let i=0; i<config.dot; i++) pool.push('Dot');
+            for(let i=0; i<config.one; i++) pool.push('1');
+            for(let i=0; i<config.two; i++) pool.push('2');
+            for(let i=0; i<config.three; i++) pool.push('3');
+            for(let i=0; i<config.four; i++) pool.push('Four');
+            for(let i=0; i<config.six; i++) pool.push('Six');
+            for(let i=0; i<config.wicket; i++) pool.push('WICKET');
+
+            return pool;
         }
 
         // DOM Elements
@@ -366,10 +402,8 @@
         }
 
         function startNewSeason() {
-            // Set Targets based on Division
-            if(player.division === 3) season.targetRuns = 250;
-            else if(player.division === 2) season.targetRuns = 350;
-            else if(player.division === 1) season.targetRuns = 450; // Elite status maintenance
+            // Realistic targets that remain constant, but higher divisions are harder to score in.
+            season.targetRuns = 300; 
 
             season.matchNum = 1;
             season.runs = 0;
@@ -385,15 +419,14 @@
         function startMatch() {
             currentInnings = { runs: 0, balls: 0, isOut: false };
             
-            // Pick a random opponent
             let opponents = TEAMS.filter(t => t !== player.team);
             let opponent = opponents[Math.floor(Math.random() * opponents.length)];
             document.getElementById('ui-opponent').innerText = opponent;
 
             nextInningBtn.style.display = 'none';
             endSeasonBtn.style.display = 'none';
-            messageEl.innerText = `Match ${season.matchNum} vs ${opponent} started!`;
-            messageEl.style.color = "var(--primary)";
+            messageEl.innerText = `Match ${season.matchNum} vs ${opponent}. Take your guard!`;
+            messageEl.style.color = "var(--dark-green)";
             
             updateUI();
             generateTiles();
@@ -401,7 +434,7 @@
 
         function generateTiles() {
             tilesContainer.innerHTML = '';
-            let pool = getPossibleOutcomes();
+            let pool = getRealisticPool();
             let tileOutcomes = [];
             
             for (let i = 0; i < 4; i++) {
@@ -423,19 +456,23 @@
             currentInnings.balls++;
             career.balls++;
 
-            clickedTile.innerText = outcome;
+            // Handle UI Reveal
+            clickedTile.innerText = outcome === 'WICKET' ? 'OUT' : outcome;
             clickedTile.classList.add('revealed');
 
-            // Disable other tiles
+            // Disable other tiles immediately
             document.querySelectorAll('.tile').forEach(t => {
                 if (t !== clickedTile) t.classList.add('disabled');
                 t.onclick = null; 
             });
 
-            if (outcome === 'LBW') {
+            if (outcome === 'WICKET') {
                 clickedTile.classList.add('out');
-                messageEl.innerText = "🚨 OUT! Plumb LBW! 🚨";
-                messageEl.style.color = "var(--danger)";
+                
+                // Pick a random realistic dismissal type
+                let dismissalType = DISMISSALS[Math.floor(Math.random() * DISMISSALS.length)];
+                messageEl.innerText = `🚨 OUT! ${dismissalType}`;
+                messageEl.style.color = "var(--ball-red)";
                 handleOut();
             } else {
                 let runsScored = 0;
@@ -451,20 +488,26 @@
 
                 if (outcome === 'Dot') {
                     clickedTile.classList.add('dot');
-                    messageEl.innerText = "Solid defense. Dot ball.";
-                    messageEl.style.color = "#718093";
+                    messageEl.innerText = "Solid defense to the fielder. Dot ball.";
+                    messageEl.style.color = "#7f8c8d";
+                } else if (outcome === 'Four' || outcome === 'Six') {
+                    clickedTile.classList.add('runs');
+                    messageEl.innerText = `CRACKING SHOT! That's a ${outcome}!`;
+                    messageEl.style.color = "var(--boundary-blue)";
                 } else {
                     clickedTile.classList.add('runs');
-                    messageEl.innerText = `Shot! Scored ${outcome === 'Four'||outcome === 'Six' ? outcome : runsScored + ' run(s)'}.`;
-                    messageEl.style.color = "var(--secondary)";
+                    messageEl.innerText = `Good running. You get ${runsScored}.`;
+                    messageEl.style.color = "var(--dark-green)";
                 }
 
                 updateUI();
+                
+                // Automatically set up the next ball
                 setTimeout(() => {
                     if (!currentInnings.isOut) {
                         generateTiles();
-                        messageEl.innerText = "Bowler running in... Pick a tile!";
-                        messageEl.style.color = "var(--primary)";
+                        messageEl.innerText = "Bowler runs in... Pick a tile!";
+                        messageEl.style.color = "var(--dark-green)";
                     }
                 }, 1000);
             }
@@ -499,20 +542,20 @@
             if (season.runs >= season.targetRuns) {
                 if (player.division > 1) {
                     player.division--;
-                    msgEl.innerText = `🏆 CONGRATULATIONS! Target Achieved. Promoted to Division ${player.division}!`;
-                    msgEl.style.color = "var(--secondary)";
+                    msgEl.innerText = `🏆 BRILIANT SEASON! Target Achieved. Promoted to Division ${player.division}!`;
+                    msgEl.style.color = "var(--pitch-green)";
                 } else {
-                    msgEl.innerText = `👑 INCREDIBLE! You maintained your Elite Status in Division 1!`;
+                    msgEl.innerText = `👑 ELITE LEGEND! You maintained your status in Division 1!`;
                     msgEl.style.color = "var(--warning)";
                 }
             } else {
                 if (player.division < 3) {
                     player.division++;
-                    msgEl.innerText = `🔻 RELEGATED! You missed the target. Dropped to Division ${player.division}.`;
-                    msgEl.style.color = "var(--danger)";
+                    msgEl.innerText = `🔻 RELEGATED! You failed to meet expectations. Dropped to Division ${player.division}.`;
+                    msgEl.style.color = "var(--ball-red)";
                 } else {
-                    msgEl.innerText = `❌ Target missed. You will remain in Division 3. Try again!`;
-                    msgEl.style.color = "var(--danger)";
+                    msgEl.innerText = `❌ Poor form. Target missed. You will remain in Division 3. Practice hard!`;
+                    msgEl.style.color = "var(--ball-red)";
                 }
             }
         }
@@ -529,7 +572,7 @@
             document.getElementById('season-avg').innerText = sAvg;
 
             // Career
-            document.getElementById('career-runs').innerText = career.runs;
+            document.getElementById('career-matches').innerText = career.matchesPlayed + (currentInnings.isOut ? 0 : 1);
             let sr = career.balls > 0 ? ((career.runs / career.balls) * 100).toFixed(2) : "0.00";
             document.getElementById('career-sr').innerText = sr;
         }
@@ -543,4 +586,4 @@
     </script>
 </body>
 </html>
-                 
+                  
