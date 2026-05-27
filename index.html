@@ -1,20 +1,20 @@
-
-                                                                                     <!DOCTYPE html>
+     <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cricket Career Simulator: Realistic Pro</title>
+    <title>Pro Cricket Career: T20 Edition</title>
     <style>
         :root {
             --pitch-green: #27ae60;
-            --dark-green: #1e8449;
+            --dark-green: #145a32;
             --ball-red: #c0392b;
             --boundary-blue: #2980b9;
             --warning: #f39c12;
             --bg: #ecf0f1;
             --text: #2c3e50;
             --card-bg: #ffffff;
+            --bowl-color: #d35400;
         }
 
         body {
@@ -22,568 +22,692 @@
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
-            padding: 20px;
+            padding: 10px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
-        h1, h2, h3 {
-            color: var(--dark-green);
-            text-align: center;
-            margin-top: 0;
-        }
+        h1, h2, h3, h4 { color: var(--dark-green); text-align: center; margin-top: 0; }
 
         /* Screens */
         #setup-screen, #game-screen, #season-end-screen {
             width: 100%;
-            max-width: 800px;
+            max-width: 900px;
             display: none; 
             flex-direction: column;
             align-items: center;
         }
-
         #setup-screen { display: flex; }
 
-        /* Setup Form */
-        .setup-card, .season-end-card {
+        /* Cards */
+        .card-container {
             background: var(--card-bg);
-            padding: 30px;
+            padding: 25px;
             border-radius: 12px;
             box-shadow: 0 8px 15px rgba(0,0,0,0.1);
             width: 100%;
-            max-width: 400px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-            width: 100%;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 6px;
-            font-size: 1rem;
             box-sizing: border-box;
-            transition: border-color 0.3s;
+            margin-bottom: 20px;
         }
 
-        .form-group input:focus, .form-group select:focus {
-            border-color: var(--pitch-green);
-            outline: none;
+        .form-group { margin-bottom: 15px; width: 100%; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group select {
+            width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-size: 1rem; box-sizing: border-box;
         }
 
-        .form-group input[disabled] {
-            background-color: #bdc3c7;
-            color: #2c3e50;
-            font-weight: bold;
-            border: none;
+        /* Layout Grids */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            width: 100%;
+            margin-bottom: 15px;
         }
+        @media(max-width: 768px) { .dashboard-grid { grid-template-columns: 1fr; } }
 
-        /* Dashboard */
-        .header-bar {
+        .stat-box {
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border-top: 4px solid var(--pitch-green);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .stat-box.bowl-theme { border-top-color: var(--bowl-color); }
+
+        .stat-value { font-size: 1.4rem; font-weight: bold; color: var(--dark-green); margin-top: 5px; }
+        .stat-value.red { color: var(--ball-red); }
+
+        /* Match Header */
+        .match-header {
             background: var(--dark-green);
             color: white;
-            width: 100%;
-            padding: 15px 20px;
-            border-radius: 10px;
+            padding: 15px;
+            border-radius: 8px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            box-sizing: border-box;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-        }
-
-        .header-bar span { font-weight: bold; color: #f1c40f; }
-
-        .dashboard {
-            display: flex;
-            gap: 20px;
             width: 100%;
+            box-sizing: border-box;
             margin-bottom: 20px;
-        }
-
-        .card {
-            background: var(--card-bg);
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            flex: 1;
-            text-align: center;
-            border-top: 4px solid var(--pitch-green);
-        }
-
-        .card h3 {
             font-size: 1.1rem;
-            border-bottom: 1px solid var(--bg);
-            padding-bottom: 8px;
-            margin-bottom: 10px;
-            color: #7f8c8d;
         }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            font-size: 0.9rem;
-            font-weight: bold;
-        }
-
-        .stat-value {
-            color: var(--dark-green);
-            font-size: 1.4rem;
-            display: block;
-            margin-top: 5px;
-        }
+        .match-header span { color: var(--warning); font-weight: bold; }
 
         /* Game Area */
-        .game-area {
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
-            width: 100%;
-            text-align: center;
-            box-sizing: border-box;
-        }
-
-        .message {
-            font-size: 1.2rem;
-            font-weight: bold;
-            height: 35px;
-            margin-bottom: 15px;
-            color: var(--dark-green);
-        }
-
+        .game-area { text-align: center; width: 100%; }
+        .message { font-size: 1.3rem; font-weight: bold; min-height: 40px; color: var(--dark-green); margin-bottom: 10px; }
+        
         .tiles-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin: 20px auto;
-            max-width: 450px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px; max-width: 400px; margin: 0 auto;
         }
 
         .tile {
-            background-color: var(--pitch-green);
-            color: white;
-            height: 110px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.6rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.1s, background-color 0.2s;
-            user-select: none;
-            box-shadow: 0 4px 0 var(--dark-green);
+            background-color: var(--pitch-green); color: white; height: 100px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: bold;
+            cursor: pointer; user-select: none; box-shadow: 0 5px 0 #1e8449; transition: all 0.1s;
         }
-
-        .tile:hover { 
-            transform: translateY(-2px); 
-            background-color: #2ecc71; 
-            box-shadow: 0 6px 0 var(--dark-green);
-        }
+        .tile:hover { transform: translateY(-2px); box-shadow: 0 7px 0 #1e8449; }
+        .tile:active { transform: translateY(3px); box-shadow: 0 2px 0 #1e8449; }
         
-        .tile:active {
-            transform: translateY(2px);
-            box-shadow: 0 2px 0 var(--dark-green);
-        }
+        .tile.bowl { background-color: var(--bowl-color); box-shadow: 0 5px 0 #a04000; }
+        .tile.bowl:hover { box-shadow: 0 7px 0 #a04000; }
+        .tile.bowl:active { box-shadow: 0 2px 0 #a04000; }
 
-        .tile.revealed { cursor: default; transform: none; box-shadow: none; }
-        .tile.runs { background-color: var(--boundary-blue); }
-        .tile.dot { background-color: #95a5a6; color: #fff; }
-        .tile.out { background-color: var(--ball-red); }
-        .tile.disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+        .tile.disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; transform: none; box-shadow: none; }
+        .tile.revealed { cursor: default; transform: none; box-shadow: none; background: var(--text); }
+
+        /* Points Table */
+        .points-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.9rem; }
+        .points-table th, .points-table td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        .points-table th { background-color: var(--dark-green); color: white; }
+        .points-table tr.my-team { background-color: #d5f5e3; font-weight: bold; }
 
         button {
-            background-color: var(--dark-green);
-            color: white;
-            border: none;
-            padding: 14px 25px;
-            font-size: 1.1rem;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background 0.3s;
-            font-weight: bold;
-            width: 100%;
-            margin-top: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            background: var(--dark-green); color: white; border: none; padding: 12px 20px; font-size: 1.1rem;
+            border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;
         }
-
-        button:hover { background-color: #145a32; }
-        button.action-btn { background-color: var(--warning); color: #2c3e50; }
-        button.action-btn:hover { background-color: #d68910; }
-
+        button:hover { background: #0e3f22; }
+        button.action { background: var(--warning); color: #333; width: 100%; margin-top: 20px; }
     </style>
 </head>
 <body>
 
-    <h1>🏏 Real Cricket Career</h1>
-
-    <!-- SCREEN 1: PLAYER SETUP -->
+    <!-- SCREEN 1: SETUP -->
     <div id="setup-screen">
-        <div class="setup-card">
-            <h2>Sign Your Contract</h2>
+        <div class="card-container" style="max-width: 450px;">
+            <h2>T20 Career Setup</h2>
             <div class="form-group">
-                <label>Batsman Name:</label>
-                <input type="text" id="p-name" placeholder="e.g. V. Kohli" value="Rookie">
+                <label>Player Name:</label>
+                <input type="text" id="p-name" value="Rookie">
             </div>
             <div class="form-group">
-                <label>Nationality:</label>
-                <input type="text" id="p-nation" placeholder="e.g. India, Australia" value="India">
-            </div>
-            <div class="form-group">
-                <label>Franchise Team:</label>
+                <label>Select Franchise:</label>
                 <select id="p-team">
                     <option value="Super Kings">Super Kings</option>
                     <option value="Mumbai Indians">Mumbai Indians</option>
                     <option value="Royal Challengers">Royal Challengers</option>
                     <option value="Knight Riders">Knight Riders</option>
                     <option value="Capitals">Capitals</option>
-                    <option value="Sunrisers">Sunrisers</option>
-                    <option value="Titans">Titans</option>
-                    <option value="Royals">Royals</option>
                 </select>
             </div>
             <div class="form-group">
-                <label>League Standing:</label>
-                <input type="text" value="Division 3 (Amateur Level)" disabled>
+                <label>Player Role:</label>
+                <select id="p-role">
+                    <option value="BAT">Batsman (Target: Runs)</option>
+                    <option value="BOWL">Bowler (Target: Wickets)</option>
+                    <option value="AR">All-Rounder (Target: Runs & Wickets)</option>
+                </select>
             </div>
-            <button onclick="startCareer()">Walk Out to Bat</button>
+            <button onclick="startCareer()" style="width: 100%;">Sign Contract</button>
         </div>
     </div>
 
     <!-- SCREEN 2: MAIN GAME -->
     <div id="game-screen">
-        <div class="header-bar">
-            <div>👤 <span id="ui-name">Name</span> (<span id="ui-nation">Nat</span>)</div>
-            <div>🛡️ <span id="ui-team">Team</span></div>
-            <div>🏆 <span id="ui-division">Div 3</span></div>
+        <div class="match-header">
+            <div>🏏 <span id="ui-name">Name</span> (<span id="ui-role">Role</span>)</div>
+            <div>🛡️ <span id="ui-team">Team</span> | Div <span id="ui-division">3</span></div>
         </div>
 
-        <div class="dashboard">
-            <!-- Current Match -->
-            <div class="card">
-                <h3>Match <span id="ui-match-num">1</span> of 9</h3>
-                <div>Vs: <span id="ui-opponent" style="color:var(--ball-red); font-weight:bold;">Opponent</span></div>
-                <div class="stats-grid" style="margin-top: 15px;">
-                    <div>Runs<span class="stat-value" id="current-runs">0</span></div>
-                    <div>Balls<span class="stat-value" id="current-balls">0</span></div>
+        <div class="dashboard-grid">
+            <!-- Live Match Box -->
+            <div class="stat-box" id="live-match-box">
+                <h3 id="match-title" style="font-size:1rem;">Match 1 vs Opponent</h3>
+                <div style="font-size:1.1rem; margin-bottom:5px;">Innings: <strong id="ui-innings">1st</strong></div>
+                <div style="display:flex; justify-content:space-between; margin-top:10px;">
+                    <div>Score<div class="stat-value" id="ui-team-score">0/0</div></div>
+                    <div>Overs<div class="stat-value" id="ui-team-overs">0.0</div></div>
                 </div>
+                <div style="margin-top:10px; font-size:0.9rem; color:#7f8c8d;" id="ui-target-req"></div>
             </div>
 
-            <!-- Season Progress -->
-            <div class="card">
-                <h3>Season Progress</h3>
-                <div style="font-size: 0.9rem; margin-bottom: 5px;">Season Target: <strong id="ui-target" style="color:var(--dark-green);">300 Runs</strong></div>
-                <div class="stats-grid">
-                    <div>Total Runs<span class="stat-value" id="season-runs">0</span></div>
-                    <div>Average<span class="stat-value" id="season-avg">0.00</span></div>
+            <!-- Player Match Stats -->
+            <div class="stat-box" id="player-match-box">
+                <h3 style="font-size:1rem;">Your Performance</h3>
+                <div style="display:flex; justify-content:space-between; margin-top:10px;">
+                    <div>Bat<div class="stat-value" id="ui-p-runs">0 (0)</div></div>
+                    <div>Bowl<div class="stat-value" id="ui-p-bowl">0/0 (0)</div></div>
                 </div>
+                <div id="ui-strike-status" style="margin-top:10px; font-weight:bold; color:var(--ball-red);"></div>
             </div>
 
-            <!-- Career Stats -->
-            <div class="card">
-                <h3>Career Stats</h3>
-                <div class="stats-grid">
-                    <div>Matches<span class="stat-value" id="career-matches" style="color:#2c3e50;">0</span></div>
-                    <div>Strike Rate<span class="stat-value" id="career-sr" style="color:#2c3e50;">0.00</span></div>
-                </div>
+            <!-- Season Targets Box -->
+            <div class="stat-box">
+                <h3 style="font-size:1rem;">Season Target</h3>
+                <div id="target-bat-div" style="margin-bottom:5px;">Runs: <span id="tgt-runs-cur">0</span> / <span id="tgt-runs-max" style="color:var(--dark-green); font-weight:bold;">0</span></div>
+                <div id="target-bowl-div">Wickets: <span id="tgt-wkts-cur">0</span> / <span id="tgt-wkts-max" style="color:var(--dark-green); font-weight:bold;">0</span></div>
             </div>
         </div>
 
-        <div class="game-area">
-            <div class="message" id="message">Bowler is at the top of his mark. Pick a tile!</div>
+        <div class="card-container game-area">
+            <div class="message" id="message">Match Starting...</div>
+            <div class="tiles-container" id="tiles-container"></div>
             
-            <div class="tiles-container" id="tiles-container">
-                <!-- Tiles generated here -->
-            </div>
+            <button id="btn-next-phase" class="action" style="display:none;" onclick="startNextPhase()">Continue Match</button>
+            <button id="btn-show-table" class="action" style="display:none;" onclick="showTableModal()">View Points Table & Next Match</button>
+        </div>
+    </div>
 
-            <button id="next-inning-btn" class="action-btn" style="display: none;" onclick="startNextMatch()">Play Next Match</button>
-            <button id="end-season-btn" class="action-btn" style="display: none;" onclick="showSeasonEnd()">End Season & View Standings</button>
+    <!-- POINTS TABLE MODAL -->
+    <div id="table-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:100; justify-content:center; align-items:center;">
+        <div class="card-container" style="max-width: 600px; max-height: 90vh; overflow-y:auto;">
+            <h2>League Standings</h2>
+            <table class="points-table" id="points-table-body">
+                <!-- Injected via JS -->
+            </table>
+            <button class="action" onclick="closeTableAndContinue()">Proceed</button>
         </div>
     </div>
 
     <!-- SCREEN 3: SEASON END -->
     <div id="season-end-screen">
-        <div class="season-end-card">
-            <h2>Season Over</h2>
-            <p id="season-result-msg" style="font-size: 1.2rem; font-weight: bold; text-align: center;"></p>
-            <div class="stats-grid" style="margin: 20px 0;">
-                <div>Runs Scored: <span class="stat-value" id="final-season-runs">0</span></div>
-                <div>Target Required: <span class="stat-value" id="final-season-target">0</span></div>
-            </div>
-            <button onclick="startNewSeason()">Start Next Season</button>
+        <div class="card-container" style="max-width: 500px; text-align: center;">
+            <h2>Season Completed</h2>
+            <h3 id="season-msg" style="color:var(--warning);"></h3>
+            <p>Your Team Finished: <strong id="final-team-rank">1st</strong></p>
+            <button onclick="startNewSeason()" style="margin-top:20px;">Play Next Season</button>
         </div>
     </div>
 
     <script>
-        // Game Data Models
-        const TEAMS = ["Super Kings", "Mumbai Indians", "Royal Challengers", "Knight Riders", "Capitals", "Sunrisers", "Titans", "Royals"];
-        const DISMISSALS = ["Clean Bowled!", "Caught at Slip!", "Plumb LBW!", "Run Out!", "Caught in the Deep!"];
+        // Data Configuration
+        const ALL_TEAMS = ["Super Kings", "Mumbai Indians", "Royal Challengers", "Knight Riders", "Capitals", "Sunrisers", "Titans", "Royals", "Super Giants", "Kings XI"];
+        const MAX_OVERS = 20;
+        const MAX_BALLS = MAX_OVERS * 6;
         
-        let player = { name: "", nationality: "", team: "", division: 3 };
-        let career = { runs: 0, balls: 0, outs: 0, matchesPlayed: 0 };
-        
+        // Game State Variables
+        let player = { name: "", team: "", role: "", division: 3 };
         let season = { 
-            matchNum: 1, 
-            runs: 0, 
-            outs: 0, 
-            maxMatches: 9,
-            targetRuns: 300 
+            matchNum: 1, maxMatches: 9, 
+            runs: 0, wkts: 0, 
+            targetRuns: 0, targetWkts: 0,
+            league: []
         };
         
-        let currentInnings = { runs: 0, balls: 0, isOut: false };
-
-        // Realistic Outcome Generator based on Division
-        // Total pool size is exactly 100 for easy percentage visualization.
-        function getRealisticPool() {
-            let pool = [];
-            let config;
-
-            if (player.division === 3) {
-                // Div 3: Loose bowling, easy to score, low wicket chance (2%)
-                config = { dot: 30, one: 40, two: 10, three: 3, four: 12, six: 3, wicket: 2 };
-            } else if (player.division === 2) {
-                // Div 2: Good line and length, harder to find gaps, slightly higher wicket chance (3%)
-                config = { dot: 38, one: 38, two: 8, three: 2, four: 10, six: 1, wicket: 3 };
-            } else {
-                // Div 1: International standard bowling. Very hard to hit boundaries. (5% wicket chance)
-                config = { dot: 45, one: 35, two: 6, three: 1, four: 7, six: 1, wicket: 5 };
-            }
-
-            // Populate the pool array based on the config
-            for(let i=0; i<config.dot; i++) pool.push('Dot');
-            for(let i=0; i<config.one; i++) pool.push('1');
-            for(let i=0; i<config.two; i++) pool.push('2');
-            for(let i=0; i<config.three; i++) pool.push('3');
-            for(let i=0; i<config.four; i++) pool.push('Four');
-            for(let i=0; i<config.six; i++) pool.push('Six');
-            for(let i=0; i<config.wicket; i++) pool.push('WICKET');
-
-            return pool;
-        }
+        let match = {
+            opponent: "",
+            innings: 1, // 1 or 2
+            phase: "", // "BAT", "BOWL", "SIM"
+            teamRuns: 0, teamWkts: 0, teamBalls: 0,
+            oppRuns: 0, oppWkts: 0, oppBalls: 0,
+            target: 0,
+            playerRuns: 0, playerBallsFaced: 0, playerOut: false, playerOnStrike: false,
+            playerWkts: 0, playerRunsConceded: 0, playerBallsBowled: 0,
+            isProcessing: false
+        };
 
         // DOM Elements
-        const screens = {
-            setup: document.getElementById('setup-screen'),
-            game: document.getElementById('game-screen'),
-            seasonEnd: document.getElementById('season-end-screen')
-        };
-        const messageEl = document.getElementById('message');
+        const screens = { setup: document.getElementById('setup-screen'), game: document.getElementById('game-screen'), end: document.getElementById('season-end-screen') };
+        const msgEl = document.getElementById('message');
         const tilesContainer = document.getElementById('tiles-container');
-        const nextInningBtn = document.getElementById('next-inning-btn');
-        const endSeasonBtn = document.getElementById('end-season-btn');
-
-        // --- Core Functions ---
-
+        
+        // Setup & Initialize
         function startCareer() {
-            player.name = document.getElementById('p-name').value || "Rookie";
-            player.nationality = document.getElementById('p-nation').value || "Unknown";
+            player.name = document.getElementById('p-name').value;
             player.team = document.getElementById('p-team').value;
-            player.division = 3;
-
-            document.getElementById('ui-name').innerText = player.name;
-            document.getElementById('ui-nation').innerText = player.nationality;
-            document.getElementById('ui-team').innerText = player.team;
+            player.role = document.getElementById('p-role').value;
             
-            switchScreen('game');
+            document.getElementById('ui-name').innerText = player.name;
+            document.getElementById('ui-team').innerText = player.team;
+            document.getElementById('ui-role').innerText = player.role === 'BAT' ? 'Batsman' : player.role === 'BOWL' ? 'Bowler' : 'All-Rounder';
+            
             startNewSeason();
         }
 
         function startNewSeason() {
-            // Realistic targets that remain constant, but higher divisions are harder to score in.
-            season.targetRuns = 300; 
-
             season.matchNum = 1;
-            season.runs = 0;
-            season.outs = 0;
+            season.runs = 0; season.wkts = 0;
+            
+            // Set Targets based on Division and Role
+            let divMult = player.division === 3 ? 1 : player.division === 2 ? 1.2 : 1.5;
+            
+            if (player.role === 'BAT') { season.targetRuns = Math.floor(250 * divMult); season.targetWkts = 0; }
+            else if (player.role === 'BOWL') { season.targetRuns = 0; season.targetWkts = Math.floor(10 * divMult); }
+            else { season.targetRuns = Math.floor(150 * divMult); season.targetWkts = Math.floor(6 * divMult); }
+            
+            document.getElementById('ui-division').innerText = player.division;
+            document.getElementById('tgt-runs-max').innerText = season.targetRuns;
+            document.getElementById('tgt-wkts-max').innerText = season.targetWkts;
+            
+            document.getElementById('target-bat-div').style.display = (player.role === 'BAT' || player.role === 'AR') ? 'block' : 'none';
+            document.getElementById('target-bowl-div').style.display = (player.role === 'BOWL' || player.role === 'AR') ? 'block' : 'none';
 
-            document.getElementById('ui-division').innerText = `Div ${player.division}`;
-            document.getElementById('ui-target').innerText = `${season.targetRuns} Runs`;
-
+            // Init League Table
+            season.league = ALL_TEAMS.map(t => ({ name: t, p: 0, w: 0, l: 0, pts: 0, nrr: 0 }));
+            
             switchScreen('game');
-            startMatch();
+            setupNextMatch();
         }
 
-        function startMatch() {
-            currentInnings = { runs: 0, balls: 0, isOut: false };
+        function setupNextMatch() {
+            // Reset match stats
+            match = {
+                opponent: getOpponent(), innings: 1, phase: "",
+                teamRuns: 0, teamWkts: 0, teamBalls: 0,
+                oppRuns: 0, oppWkts: 0, oppBalls: 0, target: 0,
+                playerRuns: 0, playerBallsFaced: 0, playerOut: false, playerOnStrike: false,
+                playerWkts: 0, playerRunsConceded: 0, playerBallsBowled: 0,
+                isProcessing: false
+            };
             
-            let opponents = TEAMS.filter(t => t !== player.team);
-            let opponent = opponents[Math.floor(Math.random() * opponents.length)];
-            document.getElementById('ui-opponent').innerText = opponent;
+            document.getElementById('match-title').innerText = `Match ${season.matchNum}/9 vs ${match.opponent}`;
+            document.getElementById('btn-next-phase').style.display = 'none';
+            document.getElementById('btn-show-table').style.display = 'none';
+            document.getElementById('ui-target-req').innerText = "";
 
-            nextInningBtn.style.display = 'none';
-            endSeasonBtn.style.display = 'none';
-            messageEl.innerText = `Match ${season.matchNum} vs ${opponent}. Take your guard!`;
-            messageEl.style.color = "var(--dark-green)";
-            
             updateUI();
-            generateTiles();
+            
+            // Determine starting phase based on role and coin toss (randomize who bats first)
+            let teamBatsFirst = Math.random() > 0.5;
+            
+            if (teamBatsFirst) {
+                match.phase = (player.role === 'BAT' || player.role === 'AR') ? 'BAT' : 'SIM_BAT';
+            } else {
+                match.phase = (player.role === 'BOWL' || player.role === 'AR') ? 'BOWL' : 'SIM_BOWL';
+            }
+            
+            startNextPhase();
         }
 
-        function generateTiles() {
-            tilesContainer.innerHTML = '';
-            let pool = getRealisticPool();
-            let tileOutcomes = [];
-            
-            for (let i = 0; i < 4; i++) {
-                tileOutcomes.push(pool[Math.floor(Math.random() * pool.length)]);
-            }
+        function getOpponent() {
+            let opponents = ALL_TEAMS.filter(t => t !== player.team);
+            // Simple rotation based on matchNum
+            return opponents[(season.matchNum - 1) % opponents.length];
+        }
 
-            tileOutcomes.forEach(outcome => {
+        function startNextPhase() {
+            document.getElementById('btn-next-phase').style.display = 'none';
+            tilesContainer.innerHTML = '';
+            
+            if (match.phase === 'BAT') {
+                document.getElementById('ui-innings').innerText = match.innings === 1 ? "1st (Batting)" : "2nd (Chasing)";
+                match.playerOnStrike = true;
+                msgEl.innerText = "You are walking out to bat. Take strike!";
+                generateTiles('BAT');
+            } 
+            else if (match.phase === 'BOWL') {
+                document.getElementById('ui-innings').innerText = match.innings === 1 ? "1st (Bowling)" : "2nd (Defending)";
+                msgEl.innerText = "Captain tosses you the ball. Bowl your spell (4 Overs).";
+                generateTiles('BOWL');
+            }
+            else if (match.phase === 'SIM_BAT' || match.phase === 'SIM_BOWL') {
+                simulateTeamPhase();
+            }
+            else if (match.phase === 'END') {
+                resolveMatch();
+            }
+        }
+
+        // --- BATTING LOGIC ---
+        function generateTiles(type) {
+            if (match.isProcessing) return;
+            tilesContainer.innerHTML = '';
+            
+            let pool = type === 'BAT' ? getBattingPool() : getBowlingPool();
+            let outcomes = [];
+            for(let i=0; i<4; i++) outcomes.push(pool[Math.floor(Math.random() * pool.length)]);
+            
+            outcomes.forEach(outcome => {
                 const tile = document.createElement('div');
-                tile.className = 'tile';
-                tile.innerText = '?';
-                tile.onclick = () => handleTileClick(tile, outcome);
+                tile.className = `tile ${type === 'BOWL' ? 'bowl' : ''}`;
+                tile.innerText = type === 'BOWL' ? 'Bowl' : 'Hit';
+                tile.onclick = () => type === 'BAT' ? handleBatClick(tile, outcome) : handleBowlClick(tile, outcome);
                 tilesContainer.appendChild(tile);
             });
         }
 
-        function handleTileClick(clickedTile, outcome) {
-            if (currentInnings.isOut || clickedTile.classList.contains('revealed')) return;
-
-            currentInnings.balls++;
-            career.balls++;
-
-            // Handle UI Reveal
-            clickedTile.innerText = outcome === 'WICKET' ? 'OUT' : outcome;
-            clickedTile.classList.add('revealed');
-
-            // Disable other tiles immediately
-            document.querySelectorAll('.tile').forEach(t => {
-                if (t !== clickedTile) t.classList.add('disabled');
-                t.onclick = null; 
-            });
-
-            if (outcome === 'WICKET') {
-                clickedTile.classList.add('out');
-                
-                // Pick a random realistic dismissal type
-                let dismissalType = DISMISSALS[Math.floor(Math.random() * DISMISSALS.length)];
-                messageEl.innerText = `🚨 OUT! ${dismissalType}`;
-                messageEl.style.color = "var(--ball-red)";
-                handleOut();
-            } else {
-                let runsScored = 0;
-                if (outcome === '1') runsScored = 1;
-                if (outcome === '2') runsScored = 2;
-                if (outcome === '3') runsScored = 3;
-                if (outcome === 'Four') runsScored = 4;
-                if (outcome === 'Six') runsScored = 6;
-
-                currentInnings.runs += runsScored;
-                season.runs += runsScored;
-                career.runs += runsScored;
-
-                if (outcome === 'Dot') {
-                    clickedTile.classList.add('dot');
-                    messageEl.innerText = "Solid defense to the fielder. Dot ball.";
-                    messageEl.style.color = "#7f8c8d";
-                } else if (outcome === 'Four' || outcome === 'Six') {
-                    clickedTile.classList.add('runs');
-                    messageEl.innerText = `CRACKING SHOT! That's a ${outcome}!`;
-                    messageEl.style.color = "var(--boundary-blue)";
-                } else {
-                    clickedTile.classList.add('runs');
-                    messageEl.innerText = `Good running. You get ${runsScored}.`;
-                    messageEl.style.color = "var(--dark-green)";
-                }
-
-                updateUI();
-                
-                // Automatically set up the next ball
-                setTimeout(() => {
-                    if (!currentInnings.isOut) {
-                        generateTiles();
-                        messageEl.innerText = "Bowler runs in... Pick a tile!";
-                        messageEl.style.color = "var(--dark-green)";
-                    }
-                }, 1000);
-            }
+        function getBattingPool() {
+            // Higher division = harder to score, more dots, slightly more wickets
+            if (player.division === 3) return ['Dot','Dot','1','1','2','3','Four','Four','Six','WICKET'];
+            if (player.division === 2) return ['Dot','Dot','Dot','1','1','2','Four','Six','WICKET','WICKET'];
+            return ['Dot','Dot','Dot','Dot','1','1','2','Four','WICKET','WICKET','WICKET'];
         }
 
-        function handleOut() {
-            currentInnings.isOut = true;
-            career.outs++;
-            season.outs++;
-            career.matchesPlayed++;
+        function handleBatClick(tile, outcome) {
+            if (match.isProcessing || match.playerOut || match.teamBalls >= MAX_BALLS || match.teamWkts >= 10) return;
+            match.isProcessing = true;
+            
+            // UI Reveal
+            revealTile(tile, outcome, 'BAT');
+            
+            match.playerBallsFaced++;
+            match.teamBalls++;
+            
+            if (outcome === 'WICKET') {
+                match.playerOut = true;
+                match.teamWkts++;
+                msgEl.innerText = "🚨 OUT! You have been dismissed!";
+                msgEl.style.color = "var(--ball-red)";
+            } else {
+                let runs = outcome === 'Dot' ? 0 : outcome === 'Four' ? 4 : outcome === 'Six' ? 6 : parseInt(outcome);
+                match.playerRuns += runs;
+                match.teamRuns += runs;
+                season.runs += runs;
+                
+                if (runs === 0) msgEl.innerText = "Solid defense. Dot ball.";
+                else if (runs >= 4) msgEl.innerText = `CRACKING SHOT! That's a ${outcome}!`;
+                else msgEl.innerText = `Good running. Scored ${runs}.`;
+                
+                // Strike rotation
+                if (runs === 1 || runs === 3) match.playerOnStrike = false;
+            }
+            
+            checkOverAndInnings('BAT');
+        }
+
+        function simulatePartnerBall() {
+            match.teamBalls++;
+            let pOutcomes = ['Dot','1','2','4','6','W'];
+            let res = pOutcomes[Math.floor(Math.random() * pOutcomes.length)];
+            
+            if (res === 'W') {
+                match.teamWkts++;
+                msgEl.innerText = "Partner got OUT!";
+            } else {
+                let r = res==='Dot'?0:parseInt(res);
+                match.teamRuns += r;
+                msgEl.innerText = `Partner scored ${r}.`;
+                if (r === 1 || r === 3) match.playerOnStrike = true; // Rotates back to player
+            }
+            checkOverAndInnings('BAT');
+        }
+
+        // --- BOWLING LOGIC ---
+        function getBowlingPool() {
+            // Bowling: clicking tile reveals what opponent scored off your ball
+            // Higher division = opponent hits more, fewer wickets
+            if (player.division === 3) return ['Dot','Dot','1','1','2','4','WICKET']; // Easy
+            if (player.division === 2) return ['Dot','1','1','2','4','6','WICKET'];
+            return ['Dot','1','2','4','4','6','WICKET']; // Hard
+        }
+
+        function handleBowlClick(tile, outcome) {
+            if (match.isProcessing || match.playerBallsBowled >= 24 || match.oppBalls >= MAX_BALLS || match.oppWkts >= 10) return;
+            match.isProcessing = true;
+            
+            revealTile(tile, outcome, 'BOWL');
+            
+            match.playerBallsBowled++;
+            match.oppBalls++;
+            
+            if (outcome === 'WICKET') {
+                match.playerWkts++;
+                match.oppWkts++;
+                season.wkts++;
+                msgEl.innerText = "🔥 CAUGHT! Great bowling, that's a Wicket!";
+                msgEl.style.color = "var(--pitch-green)";
+            } else {
+                let runs = outcome === 'Dot' ? 0 : parseInt(outcome);
+                match.playerRunsConceded += runs;
+                match.oppRuns += runs;
+                
+                if (runs === 0) msgEl.innerText = "Beat the bat! Dot ball.";
+                else if (runs >= 4) msgEl.innerText = `Smashed away for ${runs}!`;
+                else msgEl.innerText = `Opponent rotates strike for ${runs}.`;
+            }
+            
+            checkOverAndInnings('BOWL');
+        }
+
+        // --- SHARED LOGIC ---
+        function revealTile(tile, outcome, type) {
+            tile.innerText = outcome === 'WICKET' ? 'OUT' : outcome;
+            tile.classList.add('revealed');
+            document.querySelectorAll('.tile').forEach(t => {
+                if(t !== tile) t.classList.add('disabled');
+            });
+            msgEl.style.color = outcome === 'WICKET' ? (type==='BAT'?'var(--ball-red)':'var(--pitch-green)') : 'var(--text)';
+        }
+
+        function checkOverAndInnings(currentRole) {
+            updateUI();
+            let currentBalls = currentRole === 'BAT' ? match.teamBalls : match.oppBalls;
+            let currentWkts = currentRole === 'BAT' ? match.teamWkts : match.oppWkts;
+            let currentRuns = currentRole === 'BAT' ? match.teamRuns : match.oppRuns;
+            
+            // Over logic
+            if (currentBalls % 6 === 0 && currentBalls > 0) {
+                if (currentRole === 'BAT') match.playerOnStrike = !match.playerOnStrike; // End of over strike rotation
+            }
+
+            // Check innings end
+            let inningsOver = false;
+            if (currentBalls >= MAX_BALLS || currentWkts >= 10) inningsOver = true;
+            if (match.innings === 2 && currentRuns > match.target) inningsOver = true; // Chasing team won
+            
+            // Check player phase end
+            if (currentRole === 'BAT' && match.playerOut && !inningsOver) {
+                msgEl.innerText += " You return to the pavilion. Rest of innings simulated.";
+                inningsOver = true; // Stop manual play
+            }
+            if (currentRole === 'BOWL' && match.playerBallsBowled >= 24 && !inningsOver) {
+                msgEl.innerText += " Spell completed. Rest of innings simulated.";
+                inningsOver = true;
+            }
+
+            setTimeout(() => {
+                if (inningsOver) {
+                    endCurrentPhase(currentRole);
+                } else {
+                    if (currentRole === 'BAT') {
+                        if (!match.playerOnStrike) {
+                            msgEl.innerText = "Partner is facing...";
+                            document.getElementById('ui-strike-status').innerText = "Non-Striker End";
+                            setTimeout(simulatePartnerBall, 1000);
+                        } else {
+                            document.getElementById('ui-strike-status').innerText = "On Strike";
+                            match.isProcessing = false;
+                            msgEl.innerText = "Bowler is ready. Pick a tile!";
+                            generateTiles('BAT');
+                        }
+                    } else {
+                        match.isProcessing = false;
+                        msgEl.innerText = "Run up and bowl...";
+                        generateTiles('BOWL');
+                    }
+                }
+            }, 1200);
+        }
+
+        function endCurrentPhase(currentRole) {
+            // Auto simulate the rest of the current innings if it didn't naturally end
+            let b = currentRole === 'BAT' ? match.teamBalls : match.oppBalls;
+            let w = currentRole === 'BAT' ? match.teamWkts : match.oppWkts;
+            let r = currentRole === 'BAT' ? match.teamRuns : match.oppRuns;
+            
+            while (b < MAX_BALLS && w < 10) {
+                if (match.innings === 2 && r > match.target) break;
+                b++;
+                let simRun = Math.random() < 0.05 ? 'W' : Math.floor(Math.random() * 3); // 0, 1, 2
+                if (Math.random() < 0.15) simRun = 4; // Boundaries
+                
+                if (simRun === 'W') w++;
+                else r += simRun;
+            }
+
+            if (currentRole === 'BAT') { match.teamBalls=b; match.teamWkts=w; match.teamRuns=r; }
+            else { match.oppBalls=b; match.oppWkts=w; match.oppRuns=r; }
+
             updateUI();
 
-            if (season.matchNum < season.maxMatches) {
-                nextInningBtn.style.display = 'block';
+            // Setup next phase
+            if (match.innings === 1) {
+                match.innings = 2;
+                match.target = (currentRole === 'BAT' || match.phase === 'SIM_BAT') ? match.teamRuns : match.oppRuns;
+                document.getElementById('ui-target-req').innerText = `Target: ${match.target + 1}`;
+                
+                // Switch phases
+                if (match.phase === 'BAT' || match.phase === 'SIM_BAT') {
+                    match.phase = (player.role === 'BOWL' || player.role === 'AR') ? 'BOWL' : 'SIM_BOWL';
+                } else {
+                    match.phase = (player.role === 'BAT' || player.role === 'AR') ? 'BAT' : 'SIM_BAT';
+                }
+                document.getElementById('btn-next-phase').style.display = 'block';
+                document.getElementById('btn-next-phase').innerText = "Start 2nd Innings";
+                msgEl.innerText = "1st Innings Completed.";
             } else {
-                endSeasonBtn.style.display = 'block';
+                match.phase = 'END';
+                startNextPhase();
             }
         }
 
-        function startNextMatch() {
-            season.matchNum++;
-            startMatch();
+        function simulateTeamPhase() {
+            // Simulates an entire innings where the player is NOT involved
+            let runs = 0, wkts = 0, balls = 0;
+            while(balls < MAX_BALLS && wkts < 10) {
+                if (match.innings === 2 && runs > match.target) break;
+                balls++;
+                if (Math.random() < 0.05) wkts++;
+                else runs += Math.random() < 0.2 ? (Math.random() < 0.5 ? 4 : 6) : Math.floor(Math.random() * 3);
+            }
+            
+            if (match.phase === 'SIM_BAT') { match.teamRuns = runs; match.teamWkts = wkts; match.teamBalls = balls; }
+            else { match.oppRuns = runs; match.oppWkts = wkts; match.oppBalls = balls; }
+            
+            updateUI();
+            endCurrentPhase(match.phase === 'SIM_BAT' ? 'BAT' : 'BOWL');
         }
 
-        function showSeasonEnd() {
-            switchScreen('seasonEnd');
-            document.getElementById('final-season-runs').innerText = season.runs;
-            document.getElementById('final-season-target').innerText = season.targetRuns;
-
-            let msgEl = document.getElementById('season-result-msg');
+        function resolveMatch() {
+            // Determine Winner
+            let won = false;
+            let resultTxt = "";
             
-            if (season.runs >= season.targetRuns) {
+            if (match.teamRuns > match.oppRuns) { won = true; resultTxt = `${player.team} won!`; }
+            else if (match.teamRuns < match.oppRuns) { won = false; resultTxt = `${match.opponent} won!`; }
+            else { won = false; resultTxt = "Match Tied!"; }
+            
+            msgEl.innerText = resultTxt;
+            document.getElementById('btn-show-table').style.display = 'block';
+
+            // Update League Table
+            updateLeagueTable(player.team, won ? 2 : 0, match.teamRuns, match.teamBalls, match.oppRuns, match.oppBalls);
+            updateLeagueTable(match.opponent, won ? 0 : 2, match.oppRuns, match.oppBalls, match.teamRuns, match.teamBalls);
+            
+            // Auto simulate other matches for this round
+            ALL_TEAMS.forEach(t => {
+                if(t !== player.team && t !== match.opponent) {
+                    // Random sim
+                    let tr = 140 + Math.floor(Math.random()*60);
+                    let or = 140 + Math.floor(Math.random()*60);
+                    updateLeagueTable(t, tr>or?2:0, tr, 120, or, 120);
+                }
+            });
+        }
+
+        function updateLeagueTable(teamName, pts, runsFor, ballsFor, runsAgainst, ballsAgainst) {
+            let t = season.league.find(x => x.name === teamName);
+            t.p++;
+            if(pts === 2) t.w++; else t.l++;
+            t.pts += pts;
+            // Simplified NRR
+            let oversFor = ballsFor / 6; let oversAg = ballsAgainst / 6;
+            let nrrThisMatch = (runsFor / (oversFor||20)) - (runsAgainst / (oversAg||20));
+            t.nrr = ((t.nrr * (t.p - 1)) + nrrThisMatch) / t.p;
+        }
+
+        function formatOvers(balls) { return Math.floor(balls/6) + '.' + (balls%6); }
+
+        function updateUI() {
+            let isTeamBatting = (match.phase === 'BAT' || match.phase === 'SIM_BAT');
+            if(match.phase === 'END') isTeamBatting = match.innings === 2 ? (match.phase==='SIM_BAT') : true; // Arbitrary for display
+            
+            let r = isTeamBatting ? match.teamRuns : match.oppRuns;
+            let w = isTeamBatting ? match.teamWkts : match.oppWkts;
+            let b = isTeamBatting ? match.teamBalls : match.oppBalls;
+            
+            document.getElementById('ui-team-score').innerText = `${r}/${w}`;
+            document.getElementById('ui-team-overs').innerText = formatOvers(b);
+            
+            document.getElementById('ui-p-runs').innerText = `${match.playerRuns} (${match.playerBallsFaced})`;
+            document.getElementById('ui-p-bowl').innerText = `${match.playerWkts}/${match.playerRunsConceded} (${formatOvers(match.playerBallsBowled)})`;
+            
+            document.getElementById('tgt-runs-cur').innerText = season.runs;
+            document.getElementById('tgt-wkts-cur').innerText = season.wkts;
+        }
+
+        function showTableModal() {
+            // Sort table
+            season.league.sort((a,b) => b.pts - a.pts || b.nrr - a.nrr);
+            
+            let tbody = `<tr><th>Team</th><th>P</th><th>W</th><th>Pts</th><th>NRR</th></tr>`;
+            season.league.forEach(t => {
+                let isMe = t.name === player.team ? 'class="my-team"' : '';
+                tbody += `<tr ${isMe}><td>${t.name}</td><td>${t.p}</td><td>${t.w}</td><td>${t.pts}</td><td>${t.nrr.toFixed(2)}</td></tr>`;
+            });
+            document.getElementById('points-table-body').innerHTML = tbody;
+            document.getElementById('table-modal').style.display = 'flex';
+        }
+
+        function closeTableAndContinue() {
+            document.getElementById('table-modal').style.display = 'none';
+            if (season.matchNum < season.maxMatches) {
+                season.matchNum++;
+                setupNextMatch();
+            } else {
+                finishSeason();
+            }
+        }
+
+        function finishSeason() {
+            switchScreen('end');
+            season.league.sort((a,b) => b.pts - a.pts || b.nrr - a.nrr);
+            let teamRank = season.league.findIndex(t => t.name === player.team) + 1;
+            document.getElementById('final-team-rank').innerText = `${teamRank}${teamRank===1?'st':teamRank===2?'nd':teamRank===3?'rd':'th'}`;
+            
+            let targetMet = false;
+            if (player.role === 'BAT') targetMet = season.runs >= season.targetRuns;
+            else if (player.role === 'BOWL') targetMet = season.wkts >= season.targetWkts;
+            else targetMet = (season.runs >= season.targetRuns) && (season.wkts >= season.targetWkts);
+            
+            let msg = document.getElementById('season-msg');
+            if (targetMet) {
                 if (player.division > 1) {
                     player.division--;
-                    msgEl.innerText = `🏆 BRILIANT SEASON! Target Achieved. Promoted to Division ${player.division}!`;
-                    msgEl.style.color = "var(--pitch-green)";
+                    msg.innerText = `Targets Met! PROMOTED to Division ${player.division} 🏆`;
                 } else {
-                    msgEl.innerText = `👑 ELITE LEGEND! You maintained your status in Division 1!`;
-                    msgEl.style.color = "var(--warning)";
+                    msg.innerText = `Targets Met! Elite Status Retained 👑`;
                 }
             } else {
                 if (player.division < 3) {
                     player.division++;
-                    msgEl.innerText = `🔻 RELEGATED! You failed to meet expectations. Dropped to Division ${player.division}.`;
-                    msgEl.style.color = "var(--ball-red)";
+                    msg.innerText = `Targets Missed. RELEGATED to Division ${player.division} 📉`;
                 } else {
-                    msgEl.innerText = `❌ Poor form. Target missed. You will remain in Division 3. Practice hard!`;
-                    msgEl.style.color = "var(--ball-red)";
+                    msg.innerText = `Targets Missed. Try again in Division 3 ❌`;
                 }
             }
-        }
-
-        function updateUI() {
-            // Current Match
-            document.getElementById('ui-match-num').innerText = season.matchNum;
-            document.getElementById('current-runs').innerText = currentInnings.runs;
-            document.getElementById('current-balls').innerText = currentInnings.balls;
-
-            // Season
-            document.getElementById('season-runs').innerText = season.runs;
-            let sAvg = season.outs > 0 ? (season.runs / season.outs).toFixed(2) : season.runs.toFixed(2);
-            document.getElementById('season-avg').innerText = sAvg;
-
-            // Career
-            document.getElementById('career-matches').innerText = career.matchesPlayed + (currentInnings.isOut ? 0 : 1);
-            let sr = career.balls > 0 ? ((career.runs / career.balls) * 100).toFixed(2) : "0.00";
-            document.getElementById('career-sr').innerText = sr;
         }
 
         function switchScreen(screenName) {
             screens.setup.style.display = 'none';
             screens.game.style.display = 'none';
-            screens.seasonEnd.style.display = 'none';
+            screens.end.style.display = 'none';
             screens[screenName].style.display = 'flex';
         }
     </script>
 </body>
 </html>
-                  
+                                   
